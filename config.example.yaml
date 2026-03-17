@@ -1,0 +1,192 @@
+# Meme Token Scanner Configuration
+# Copy this file to ~/.config/meme-scan/config.yaml and edit as needed
+
+# API Configuration
+apis:
+  # GoPlus Security API (https://gopluslabs.io/)
+  goplus:
+    base_url: "https://api.gopluslabs.io/api/v1"
+    api_key: ""  # Set via GOPPLUS_API_KEY env var or here
+    rate_limit: 10  # requests per second
+    timeout: 30
+
+  # DEXScreener API
+  dexscreener:
+    base_url: "https://api.dexscreener.com"
+    ws_url: "wss://api.dexscreener.com/ws"
+    rate_limit: 30
+    timeout: 15
+
+  # GeckoTerminal API
+  geckoterminal:
+    base_url: "https://api.geckoterminal.com/api/v2"
+    rate_limit: 20
+    timeout: 15
+
+  # CoinGecko API (optional, for additional data)
+  coingecko:
+    base_url: "https://api.coingecko.com/api/v3"
+    api_key: ""  # Set via COINGECKO_API_KEY env var
+    rate_limit: 10
+    timeout: 20
+
+# Supported Chains Configuration
+chains:
+  eth:
+    name: "Ethereum"
+    chain_id: 1
+    rpc_url: "https://eth.llamarpc.com"
+    explorer: "https://etherscan.io"
+    enabled: true
+
+  bsc:
+    name: "BNB Smart Chain"
+    chain_id: 56
+    rpc_url: "https://bsc-dataseed1.binance.org"
+    explorer: "https://bscscan.com"
+    enabled: true
+
+  polygon:
+    name: "Polygon"
+    chain_id: 137
+    rpc_url: "https://polygon-rpc.com"
+    explorer: "https://polygonscan.com"
+    enabled: true
+
+  base:
+    name: "Base"
+    chain_id: 8453
+    rpc_url: "https://mainnet.base.org"
+    explorer: "https://basescan.org"
+    enabled: true
+
+  arbitrum:
+    name: "Arbitrum One"
+    chain_id: 42161
+    rpc_url: "https://arb1.arbitrum.io/rpc"
+    explorer: "https://arbiscan.io"
+    enabled: true
+
+  sol:
+    name: "Solana"
+    chain_id: 0  # Solana doesn't use EVM chain IDs
+    rpc_url: "https://api.mainnet-beta.solana.com"
+    explorer: "https://explorer.solana.com"
+    enabled: true
+
+  avalanche:
+    name: "Avalanche"
+    chain_id: 43114
+    rpc_url: "https://api.avax.network/ext/bc/C/rpc"
+    explorer: "https://snowtrace.io"
+    enabled: false
+
+# Scanner Settings
+scanner:
+  # Polling interval for new tokens (seconds)
+  poll_interval: 10
+  
+  # WebSocket settings
+  websocket:
+    enabled: true
+    reconnect_delay: 5
+    max_reconnect_attempts: 10
+
+  # Filtering thresholds
+  filters:
+    min_liquidity_usd: 1000  # Minimum liquidity in USD
+    max_liquidity_usd: 10000000  # Maximum liquidity (filter huge established tokens)
+    min_market_cap: 0
+    max_market_cap: 10000000
+    min_holders: 10
+    max_top_holder_pct: 50  # Alert if top holder owns more than this %
+
+  # Concurrent processing
+  max_concurrent_scans: 10
+  batch_size: 20
+
+# Risk Scoring Weights (0-100)
+risk_weights:
+  honeypot: 40
+  mintable: 30
+  owner_not_renounced: 15
+  high_tax: 10
+  lp_unlocked: 20
+  top_holder_concentration: 15
+  low_liquidity: 10
+
+# Detection Thresholds
+thresholds:
+  honeypot:
+    confidence_threshold: 0.7  # Confidence level to flag as honeypot
+
+  tax:
+    buy_tax_warning: 5  # Warn if buy tax > 5%
+    buy_tax_danger: 15  # Danger if buy tax > 15%
+    sell_tax_warning: 5
+    sell_tax_danger: 15
+
+  liquidity:
+    min_initial_liquidity_usd: 500  # Alert if initial LP < $500
+    lp_lock_min_days: 30  # Minimum lock duration to be considered safe
+
+  holders:
+    top_10_threshold: 30  # Alert if top 10 holders own > 30%
+    whale_threshold: 5  # Flag single wallet with > 5%
+
+# Cache Configuration
+cache:
+  enabled: true
+  ttl: 300  # Time to live in seconds
+  max_size: 1000
+  disk_cache_dir: "~/.cache/meme-scan"
+
+# Logging Configuration
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  format: "json"  # json or text
+  file: "logs/scan-{date}.log"
+  max_file_size_mb: 50
+  backup_count: 10
+  console: true
+
+# Notification Settings
+notifications:
+  termux:
+    enabled: true
+    sound: true
+    sound_file: ""  # Path to custom sound file
+    tts: false  # Text-to-speech alerts
+    
+  # Alert thresholds
+  alert_on:
+    high_confidence: true  # Alert on high-confidence safe tokens
+    critical_risk: true  # Alert on critical risk tokens
+    honeypot_detected: true
+    mint_function: true
+
+# Output Settings
+output:
+  formats:
+    - json
+    - csv
+  directory: "./results"
+  filename_pattern: "scan_{chain}_{timestamp}"
+
+# Security Settings
+security:
+  # IMPORTANT: Never enable on-chain writes without explicit user consent
+  allow_onchain_tx: false
+  dry_run_default: true
+  
+  # Require this env var for any on-chain operations
+  onchain_env_var: "ALLOW_ONCHAIN"
+
+# Performance Settings
+performance:
+  connection_pool_size: 20
+  request_timeout: 30
+  max_retries: 3
+  retry_delay: 1.0
+  retry_multiplier: 2.0
+  rate_limit_buffer: 0.1  # 10% buffer under rate limit
